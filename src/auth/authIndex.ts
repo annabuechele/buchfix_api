@@ -15,6 +15,7 @@ const PORT = process.env.AUTH_PORT || 4001;
 //middlewares
 app.use(cors());
 app.use(express.json());
+app.use(morgan("dev"));
 
 app.get("/", (req: Request, res: Response) => {
   res.redirect("https://google.com");
