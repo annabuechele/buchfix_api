@@ -4,6 +4,8 @@ import * as cors from "cors";
 import * as dotenv from "dotenv";
 import * as morgan from "morgan";
 
+//routes
+
 const app = express();
 
 //env config
