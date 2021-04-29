@@ -17,7 +17,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
 
   const user: UserType = req.body.user;
 
-  let fk_location: number;
+  let fk_address: number;
   let fk_name: number;
 
   //google recaptcha
@@ -29,7 +29,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
   //insert adress
   const locationSQL =
     "INSERT INTO address (street, number, zip, city, state, country) VALUES (?, ?, ?, ?, ?, ?)";
-  const adress: mysql.Query = await sql.query(
+  sql.query(
     locationSQL,
     [
       user.location.street,
@@ -39,32 +39,59 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
       user.location.state,
       user.location.country,
     ],
-    async (err: mysql.MysqlError, results: any, fields: mysql.FieldInfo[]) => {
-      if (err) return res.sendStatus(500);
-      fk_location = results.insertId;
+    async (
+      locationErr: mysql.MysqlError,
+      locationResults: any,
+      locationFields: mysql.FieldInfo[]
+    ) => {
+      if (locationErr) return res.sendStatus(500);
+
+      fk_address = locationResults.insertId;
+
+      //name insert
+      const nameSQL = "INSERT INTO name (firstname, lastname) VALUES (?, ?)";
+      sql.query(
+        nameSQL,
+        [user.name.firstName, user.name.lastName],
+        async (
+          nameErr: mysql.MysqlError,
+          nameResults: any,
+          nameFields: mysql.FieldInfo[]
+        ) => {
+          console.log("2");
+          if (nameErr) return res.sendStatus(500);
+
+          fk_name = nameResults.insertId;
+          const salt = await require("crypto").randomBytes(16).toString("hex");
+
+          //user insert
+          const userSQL =
+            "INSERT INTO user (username, password, email, salt, is_admin, fk_name, fk_address) VALUES (?, Password(?), ?, ?, ?, ?, ?)";
+          sql.query(
+            userSQL,
+            [
+              user.username,
+              user.password + salt,
+              user.email,
+              salt,
+              0,
+              fk_name,
+              fk_address,
+            ],
+            async (
+              userErr: mysql.MysqlError,
+              userResults: any,
+              userFields: mysql.FieldInfo[]
+            ) => {
+              if (userErr) return res.sendStatus(500);
+
+              return res.sendStatus(200);
+            }
+          );
+        }
+      );
     }
   );
-
-  //name insert
-  const nameSQL = "INSERT INTO name (firstname, lastname) VALUES (?, ?)";
-  await sql.query(
-    nameSQL,
-    [user.name.firstName, user.name.lastName],
-    async (err: mysql.MysqlError, results: any, fields: mysql.FieldInfo[]) => {
-      if (err) return res.sendStatus(500);
-      fk_name = results.insertId;
-    }
-  );
-
-  //user insert
-  const userSQL =
-    "INSERT INTO user (username, password, email, salt, is_admin, fk_name, fk_adress) VALUES (?, ?, ?, ?, ?, ?, ?)";
-  await sql.query(
-    userSQL,
-    [],
-    async (err: mysql.MysqlError, results: any, fields: mysql.FieldInfo[]) => {}
-  );
-  return res.sendStatus(200);
 });
 
 export default router;
