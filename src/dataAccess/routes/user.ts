@@ -58,7 +58,6 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
           nameResults: any,
           nameFields: mysql.FieldInfo[]
         ) => {
-          console.log("2");
           if (nameErr) return res.sendStatus(500);
 
           fk_name = nameResults.insertId;
