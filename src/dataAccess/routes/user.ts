@@ -96,8 +96,8 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                   return res.sendStatus(500);
                 }
                 sql.commit((commitError: mysql.MysqlError) => {
-                  if (err) return res.sendStatus(500);
-                  return res.sendStatus(200);
+                  if (commitError) return res.sendStatus(500);
+                  res.sendStatus(200);
                 });
               }
             );
