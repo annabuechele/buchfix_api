@@ -1,4 +1,4 @@
-interface UserType {
+type UserType = {
   id?: number;
   username: string;
   email: string;
@@ -16,5 +16,5 @@ interface UserType {
     state: string;
     country: string;
   };
-}
+};
 export default UserType;

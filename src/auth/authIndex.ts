@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import * as cors from "cors";
 import * as dotenv from "dotenv";
 import * as morgan from "morgan";
+import * as rateLimiting from "express-rate-limit";
 
 //routes
 
@@ -22,6 +23,7 @@ require("../helpers/mongo_db");
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+app.use(rateLimiting({ windowMs: 1000, max: 50 })); //50 Requests/min
 
 //routes
 

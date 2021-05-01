@@ -1,5 +1,5 @@
 import { StringMappingType } from "typescript";
 
-interface BookType {}
+type BookType = {}
 
 export default BookType;
