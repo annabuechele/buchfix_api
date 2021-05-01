@@ -5,8 +5,6 @@ import * as dotenv from "dotenv";
 import * as morgan from "morgan";
 import * as rateLimiting from "express-rate-limit";
 
-//routes
-
 const app = express();
 
 //env config
@@ -26,10 +24,13 @@ app.use(morgan("dev"));
 app.use(rateLimiting({ windowMs: 1000, max: 50 })); //50 Requests/min
 
 //routes
+import authenticateRoute from "./routes/authentication";
 
 app.get("/", (req: Request, res: Response) => {
   res.redirect("https://buchfix.at");
 });
+
+app.use("/authenticate", authenticateRoute);
 
 app.listen(PORT, () => {
   console.log(`Auth-Server is running in http://localhost:${PORT}`);
