@@ -70,7 +70,7 @@ router.post("/login", (req: express.Request, res: express.Response) => {
     token: refreshToken,
     user: {
       username: user.username,
-      ip: req.ip.substring(7),
+      ip: req.ip,
     },
     created_at: Date.now(),
   });
