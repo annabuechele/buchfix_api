@@ -65,11 +65,12 @@ router.post("/login", (req: express.Request, res: express.Response) => {
   const accessToken = genAccessToken(user);
 
   const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);
+
   const mongoToken = new tokenSchema({
     token: refreshToken,
     user: {
       username: user.username,
-      ip: req.ip.substr(7),
+      ip: req.ip.substring(7),
     },
     created_at: Date.now(),
   });
