@@ -2,8 +2,9 @@ type UserType = {
   id?: number;
   username: string;
   email: string;
-  password: string;
-  salt: string;
+  password?: string;
+  salt?: string;
+  is_admin?: 0 | 1;
   name: {
     firstName: string;
     lastName: string;

@@ -40,8 +40,8 @@ const validateUser = (
           const salt: string = saltResults[0].salt;
 
           const userSQL: string =
-            "SELECT * from user WHERE username = ? AND password = Password(?)";
-
+            "SELECT username, email, is_admin, street, number, zip, city, state, country, firstName, lastName from buchfix_db.user INNER JOIN address ON user.fk_address=address.id_address INNER JOIN name ON user.fk_name=name.id_name WHERE username = ? AND password = Password(?) ";
+          console.log(loginUser.password + salt);
           sql.query(
             userSQL,
             [loginUser.username, loginUser.password + salt],
@@ -50,7 +50,23 @@ const validateUser = (
 
               if (userResults.length === 0) return res.send(403);
 
-              const user: UserType = userResults[0];
+              const user: UserType = {
+                username: userResults[0].username,
+                email: userResults[0].email,
+                is_admin: userResults[0].is_admin,
+                name: {
+                  firstName: userResults[0].firstName,
+                  lastName: userResults[0].lastName,
+                },
+                location: {
+                  city: userResults[0].city,
+                  country: userResults[0].country,
+                  number: userResults[0].number,
+                  state: userResults[0].state,
+                  street: userResults[0].street,
+                  zipCode: userResults[0].zip,
+                },
+              };
 
               req.body.user = user;
               next();
