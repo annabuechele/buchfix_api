@@ -41,7 +41,7 @@ const validateUser = (
 
           const userSQL: string =
             "SELECT username, email, is_admin, street, number, zip, city, state, country, firstName, lastName from buchfix_db.user INNER JOIN address ON user.fk_address=address.id_address INNER JOIN name ON user.fk_name=name.id_name WHERE username = ? AND password = Password(?) ";
-          console.log(loginUser.password + salt);
+
           sql.query(
             userSQL,
             [loginUser.username, loginUser.password + salt],

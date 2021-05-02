@@ -11,9 +11,6 @@ import sql from "../../helpers/sql_db";
 //middlewares
 import validateUser from "../../helpers/validateUser";
 
-//get user by username parameter
-router.get("/:username", (req: express.Request, res: express.Response) => {});
-
 //post new user with recaptcha validation
 router.post("/new", async (req: express.Request, res: express.Response) => {
   const reCaptchaToken = req.body.reCaptchaToken;
@@ -118,4 +115,5 @@ router.post(
     res.send(req.body.user);
   }
 );
+
 export default router;

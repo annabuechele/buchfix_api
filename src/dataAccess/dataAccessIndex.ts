@@ -10,7 +10,7 @@ import * as rateLimiting from "express-rate-limit";
 import statisticRoute from "./routes/statistic";
 import bookRoute from "./routes/book";
 import userRoute from "./routes/user";
-
+import adminRoute from "./routes/admin";
 const app = express();
 
 //setting port of app
@@ -26,6 +26,7 @@ app.use(rateLimiting({ windowMs: 1000, max: 50 })); //50 Requests/min
 app.use("/user", userRoute);
 app.use("/statistics", statisticRoute);
 app.use("/book", bookRoute);
+app.use("/admin", adminRoute);
 
 app.get("/", (req: express.Request, res: express.Response) => {
   res.redirect("https://buchfix.at");
