@@ -17,5 +17,7 @@ type UserType = {
     state: string;
     country: string;
   };
+  fk_address?: number;
+  fk_name?: number;
 };
 export default UserType;
