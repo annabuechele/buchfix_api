@@ -11,7 +11,7 @@ import sql from "../../helpers/sql_db";
 import UserType from "../../types/userType";
 
 //get user by username parameter
-router.get(
+router.post(
   "/:username",
   validateUser,
   (req: express.Request, res: express.Response) => {
