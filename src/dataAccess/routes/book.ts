@@ -17,25 +17,6 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
   let randomstring: string;
   let filename: string;
 
-  try {
-    isbn = req.body.book.isbn;
-    base64IMGFull = req.body.base64;
-
-    type = "." + base64IMGFull.substr(11, 3);
-
-    base64Short = base64IMGFull.substr(22);
-
-    const buff = Buffer.from(base64Short, "base64");
-
-    randomstring = await require("crypto").randomBytes(16).toString("hex");
-
-    filename = isbn + randomstring + type;
-    fs.writeFileSync("../public_html/static/media/" + filename, buff);
-  } catch (error) {
-    console.log(error);
-    return res.sendStatus(500);
-  }
-
   const insertBook: BookType = {
     format: req.body.book.format,
     genre: req.body.book.genre,
@@ -103,7 +84,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                     fk_genre,
                     fk_file,
                   ],
-                  (
+                  async (
                     insertBookError: mysql.MysqlError,
                     insertBookResults: Array<any>
                   ) => {
@@ -111,6 +92,30 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                       sql.rollback();
                       return res.sendStatus(500);
                     }
+                    try {
+                      isbn = req.body.book.isbn;
+                      base64IMGFull = req.body.base64;
+
+                      type = "." + base64IMGFull.substr(11, 3);
+
+                      base64Short = base64IMGFull.substr(22);
+
+                      const buff = Buffer.from(base64Short, "base64");
+
+                      randomstring = await require("crypto")
+                        .randomBytes(16)
+                        .toString("hex");
+
+                      filename = isbn + randomstring + type;
+                      fs.writeFileSync(
+                        "../public_html/static/media/" + filename,
+                        buff
+                      );
+                    } catch (error) {
+                      sql.rollback();
+                      return res.sendStatus(500);
+                    }
+
                     sql.commit();
                     res.sendStatus(200);
                   }
