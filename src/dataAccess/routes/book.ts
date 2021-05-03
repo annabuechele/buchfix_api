@@ -20,7 +20,7 @@ router.post("/new", (req: express.Request, res: express.Response) => {
 
     let buff = Buffer.from(base64Short, "base64");
 
-    fs.writeFileSync("../static/media/" + isbn + type, buff);
+    fs.writeFileSync("../public_html/static/media/" + isbn + type, buff);
 
     const insertNook: BookType = {
       format: req.body.book.format,
