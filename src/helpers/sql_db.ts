@@ -1,25 +1,40 @@
 import * as mysql from "mysql";
 
-const sql = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+var sql: mysql.Connection;
 
-sql.connect(function (err: mysql.MysqlError) {
-  if (err) return console.log(err.message);
-  console.log(`Connected to MySQL-Server`);
-  console.log(`DB-Name: ${process.env.DB_NAME}`);
-});
+const handleDisconnect = () => {
+  sql = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+  });
 
-sql.on("error", (err: mysql.MysqlError) => {
-  console.log(
-    err.message,
-    err.code,
-    new Date(Date.now()).toDateString(),
-    new Date(Date.now()).toTimeString()
-  );
-});
+  sql.connect((err) => {
+    if (err) {
+      console.log("Error when connecting to db:", err);
+      setTimeout(handleDisconnect, 2000);
+      return;
+    }
+    console.log(`Connected to MySQL-Server`);
+    console.log(`DB-Name: ${process.env.DB_NAME}`);
+  });
+
+  sql.on("error", (err) => {
+    console.log("db error", err);
+    if (err.code === "PROTOCOL_CONNECTION_LOST") {
+      handleDisconnect();
+    } else {
+      console.log(
+        err.message,
+        err.code,
+        new Date(Date.now()).toDateString(),
+        new Date(Date.now()).toTimeString()
+      );
+    }
+  });
+};
+
+handleDisconnect();
 
 export default sql;

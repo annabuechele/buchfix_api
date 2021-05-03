@@ -53,22 +53,22 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
     let fk_format: number;
     let fk_file: number;
 
-    const getGenreSQL: string = "SELCET id_genre FROM genre WHERE name = ?";
+    const getGenreSQL: string = "SELECT id_genre FROM genre WHERE name = ?";
     sql.query(
       getGenreSQL,
       [insertBook.genre],
       (getGenreError: mysql.MysqlError, genreResults: Array<any>) => {
-        if (getGenreError) return res.send(getGenreError);
+        if (getGenreError) return res.sendStatus(500);
         if (genreResults.length === 0) return res.sendStatus(404);
         fk_genre = genreResults[0].id_genre;
 
         const getFormatSQL: string =
-          "SELCET id_format FROM format WHERE name = ?";
+          "SELECT id_format FROM format WHERE name = ?";
         sql.query(
           getFormatSQL,
-          [insertBook.genre],
+          [insertBook.format],
           (getFromatError: mysql.MysqlError, formatResults: Array<any>) => {
-            console.log("get format");
+            console.log(getFromatError);
             if (getFromatError) return res.sendStatus(500);
 
             if (genreResults.length === 0) return res.sendStatus(404);
@@ -84,6 +84,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                 insertFileError: mysql.MysqlError,
                 insertFileResults: Array<any>
               ) => {
+                console.log("insert book");
                 if (insertFileError) {
                   sql.rollback();
                   return res.sendStatus(500);
