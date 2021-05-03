@@ -13,4 +13,13 @@ sql.connect(function (err: mysql.MysqlError) {
   console.log(`DB-Name: ${process.env.DB_NAME}`);
 });
 
+sql.on("error", (err: mysql.MysqlError) => {
+  console.log(
+    err.message,
+    err.code,
+    new Date(Date.now()).toDateString(),
+    new Date(Date.now()).toTimeString()
+  );
+});
+
 export default sql;
