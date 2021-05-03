@@ -32,6 +32,7 @@ router.post("/new", (req: express.Request, res: express.Response) => {
       title: req.body.book.title,
     };
   } catch (error) {
+    console.log(error);
     return res.sendStatus(500);
   }
 
