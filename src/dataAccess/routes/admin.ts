@@ -69,8 +69,6 @@ router.post(
   validateUser,
   (req: express.Request, res: express.Response) => {
     const username: string = req.params.username;
-    console.log(req.body.user.is_admin);
-    console.log(req.body.user.username);
     if (!req.body.user.is_admin) {
       if (req.body.user.username !== username) return res.sendStatus(403);
     }

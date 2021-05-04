@@ -47,7 +47,7 @@ const validateUser = (
             [loginUser.username, loginUser.password + salt],
             (userError: mysql.MysqlError, userResults: Array<any>) => {
               if (userError) return res.sendStatus(500);
-              console.log(userResults);
+
               if (userResults.length === 0) return res.send(403);
 
               const user: UserType = {
@@ -67,7 +67,7 @@ const validateUser = (
                   zipCode: userResults[0].zip,
                 },
               };
-              console.log("found user", user);
+
               req.body.user = user;
               next();
             }
