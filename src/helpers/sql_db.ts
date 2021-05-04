@@ -12,7 +12,7 @@ const handleDisconnect = () => {
 
   sql.connect((err: mysql.MysqlError) => {
     if (err) {
-      console.log("Error when connecting to DB:", err.message, err.code);
+      console.log("Error when connecting to DB:", err.message);
       console.log("Trying to reconnect...");
       setTimeout(handleDisconnect, 2000);
       return;
