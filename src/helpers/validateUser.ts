@@ -32,8 +32,8 @@ const validateUser = (
       sql.query(
         findSaltSQL,
         [loginUser.username],
-        async (err: mysql.MysqlError, saltResults: Array<any>) => {
-          if (err) return res.sendStatus(500);
+        async (saltError: mysql.MysqlError, saltResults: Array<any>) => {
+          if (saltError) return res.sendStatus(500);
 
           if (saltResults.length === 0) return res.sendStatus(403);
 
@@ -45,9 +45,9 @@ const validateUser = (
           sql.query(
             userSQL,
             [loginUser.username, loginUser.password + salt],
-            (err: mysql.MysqlError, userResults: Array<any>) => {
-              if (err) return res.sendStatus(500);
-
+            (userError: mysql.MysqlError, userResults: Array<any>) => {
+              if (userError) return res.sendStatus(500);
+              console.log(userResults);
               if (userResults.length === 0) return res.send(403);
 
               const user: UserType = {
