@@ -18,16 +18,16 @@ const genAccessToken: (user: UserLoginType) => string = (user) => {
 router.post("/token", async (req: express.Request, res: express.Response) => {
   const refreshToken = req.body.refreshToken;
 
-  if (refreshToken == null) return res.sendStatus(401);
+  if (refreshToken == null) return res.status(401).send("No Token provided");
 
   const dbToken = await tokenSchema.find({ token: refreshToken });
-  if (!dbToken.length) return res.sendStatus(403);
+  if (!dbToken.length) return res.status(403).send("Refresh-Token not found");
 
   jwt.verify(
     refreshToken,
     process.env.REFRESH_TOKEN_SECRET,
     (err: jwt.VerifyErrors, user: UserLoginType) => {
-      if (err) return res.sendStatus(403);
+      if (err) return res.status(403).send("Error in verifying Token");
       const accessToken = genAccessToken({
         username: user.username,
         password: user.password,
@@ -41,17 +41,17 @@ router.post("/token", async (req: express.Request, res: express.Response) => {
 router.post("/logout", async (req: express.Request, res: express.Response) => {
   const refreshToken = req.body.refreshToken;
 
-  if (refreshToken == null) return res.sendStatus(401);
+  if (refreshToken == null) return res.status(401).send("No token provided");
 
   const dbToken = await tokenSchema.find({ token: refreshToken });
 
-  if (!dbToken.length) return res.sendStatus(403);
+  if (!dbToken.length) return res.status(403).send("Refresh-Token not found");
 
   const tokenID = dbToken[0]._id;
 
   await tokenSchema.findByIdAndRemove({ _id: tokenID });
 
-  res.sendStatus(200);
+  res.status(200).send("Logout successful!");
 });
 
 router.post("/login", (req: express.Request, res: express.Response) => {
@@ -62,16 +62,20 @@ router.post("/login", (req: express.Request, res: express.Response) => {
   const accessToken = genAccessToken(user);
 
   const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);
+  try {
+    const mongoToken = new tokenSchema({
+      token: refreshToken,
+      user: {
+        username: user.username,
+        ip: req.ip,
+      },
+      created_at: Date.now(),
+    });
+    mongoToken.save();
+  } catch (mongoError) {
+    res.status(500).send("Error in processing Data");
+  }
 
-  const mongoToken = new tokenSchema({
-    token: refreshToken,
-    user: {
-      username: user.username,
-      ip: req.ip,
-    },
-    created_at: Date.now(),
-  });
-  mongoToken.save();
   res
     .status(200)
     .send({ accessToken: accessToken, refreshToken: refreshToken });

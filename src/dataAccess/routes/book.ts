@@ -7,13 +7,12 @@ import * as mysql from "mysql";
 
 //DB connection object
 import sql from "../../helpers/sql_db";
-import { EROFS } from "node:constants";
 
 router.post("/new", async (req: express.Request, res: express.Response) => {
   const isbn: string = req.body.book.isbn;
   const base64IMGFull: string = req.body.base64;
 
-  const type: string = "." + base64IMGFull.substr(11, 3);
+  const type: string = "." + base64IMGFull.substr(12, 3);
   const base64Short: string = base64IMGFull.substr(22);
 
   const randomstring: string = await require("crypto")
@@ -34,7 +33,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
     title: req.body.book.title,
   };
   sql.beginTransaction((transactionErr: mysql.MysqlError) => {
-    if (transactionErr) return res.sendStatus(500);
+    if (transactionErr) return res.status(500).send("Something went wrong");
 
     let fk_genre: number;
     let fk_format: number;
@@ -44,23 +43,30 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
     sql.query(
       getGenreSQL,
       [insertBook.genre],
-      (getGenreError: mysql.MysqlError, genreResults: Array<any>) => {
-        if (getGenreError) return res.sendStatus(500);
-        if (genreResults.length === 0) return res.sendStatus(404);
+      (getGenreError: mysql.MysqlError, genreResults: any) => {
+        if (getGenreError)
+          return res
+            .status(500)
+            .send("Something went wrong while processing your Data");
+        if (genreResults.length === 0)
+          return res.status(404).send("Genre not found");
 
         fk_genre = genreResults[0].id_genre;
-
         const getFormatSQL: string =
-          "SELECT id_genre FROM format WHERE name = ?";
+          "SELECT id_format FROM format WHERE name = ?";
         sql.query(
           getFormatSQL,
           [insertBook.format],
           (getFromatError: mysql.MysqlError, formatResults: Array<any>) => {
-            if (getFromatError) return res.sendStatus(500);
+            if (getFromatError)
+              return res
+                .status(500)
+                .send("Something went wrong while processing your Data");
 
-            if (genreResults.length === 0) return res.sendStatus(404);
+            if (formatResults.length === 0)
+              return res.status(404).send("Format not found");
 
-            fk_format = formatResults[0].id_genre;
+            fk_format = formatResults[0].id_format;
 
             const insertFileSQL: string =
               "INSERT INTO file (name, path) VALUES (?, ?)";
@@ -70,7 +76,9 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
               (insertFileError: mysql.MysqlError, insertFileResults: any) => {
                 if (insertFileError) {
                   sql.rollback();
-                  return res.sendStatus(500);
+                  return res
+                    .status(500)
+                    .send("Something went wrong while processing your Data");
                 }
 
                 fk_file = insertFileResults.insertId;
@@ -93,7 +101,11 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                   ) => {
                     if (insertBookError) {
                       sql.rollback();
-                      return res.sendStatus(500);
+                      return res
+                        .status(500)
+                        .send(
+                          "Something went wrong while processing your Data"
+                        );
                     }
 
                     try {
@@ -103,7 +115,11 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                       );
                     } catch (error) {
                       sql.rollback();
-                      return res.sendStatus(500);
+                      return res
+                        .status(500)
+                        .send(
+                          "Something went wrong while processing your Data"
+                        );
                     }
 
                     sql.commit();

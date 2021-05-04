@@ -15,48 +15,58 @@ router.post(
   "/:username",
   validateUser,
   (req: express.Request, res: express.Response) => {
-    if (!req.body.user.is_admin) return res.sendStatus(403);
+    if (!req.body.user.is_admin)
+      return res.status(403).send("Your are not a admin User");
 
     const username: string = req.params.username;
 
-    const userSQL: string = "SELECT * FROM user WHERE username = ?";
+    const checkUserSQL: string = "SELECT * FROM user WHERE username = ?";
 
     sql.query(
-      userSQL,
+      checkUserSQL,
       [username],
-      (err: mysql.MysqlError, userResults: any) => {
-        if (userResults.length === 0) return res.sendStatus(404);
+      (checkUserErr: mysql.MysqlError, checkUserResults: any) => {
+        if (checkUserErr)
+          return res
+            .status(500)
+            .send("Something went wrong while searching for your user");
+        if (checkUserResults.length === 0)
+          return res.status(404).send("User not found");
 
-        const userSQL: string =
+        const findUserSQL: string =
           "SELECT username, email, is_admin, street, number, zip, city, state, country, firstName, lastName from buchfix_db.user INNER JOIN address ON user.fk_address=address.id_address INNER JOIN name ON user.fk_name=name.id_name WHERE username = ?";
 
         sql.query(
-          userSQL,
+          findUserSQL,
           [username],
-          (err: mysql.MysqlError, userResults: Array<any>) => {
-            if (err) return res.sendStatus(500);
+          (findUserErr: mysql.MysqlError, findUserResults: Array<any>) => {
+            if (findUserErr)
+              return res
+                .status(500)
+                .send("Something went wrong while processing your Data");
 
-            if (userResults.length === 0) return res.send(403);
+            if (findUserResults.length === 0)
+              return res.status(404).send("User not found");
 
             const user: UserType = {
-              username: userResults[0].username,
-              email: userResults[0].email,
-              is_admin: userResults[0].is_admin,
+              username: findUserResults[0].username,
+              email: findUserResults[0].email,
+              is_admin: findUserResults[0].is_admin,
               name: {
-                firstName: userResults[0].firstName,
-                lastName: userResults[0].lastName,
+                firstName: findUserResults[0].firstName,
+                lastName: findUserResults[0].lastName,
               },
               location: {
-                city: userResults[0].city,
-                country: userResults[0].country,
-                number: userResults[0].number,
-                state: userResults[0].state,
-                street: userResults[0].street,
-                zipCode: userResults[0].zip,
+                city: findUserResults[0].city,
+                country: findUserResults[0].country,
+                number: findUserResults[0].number,
+                state: findUserResults[0].state,
+                street: findUserResults[0].street,
+                zipCode: findUserResults[0].zip,
               },
             };
 
-            res.send(user);
+            res.status(200).send(user);
           }
         );
       }
@@ -70,7 +80,8 @@ router.post(
   (req: express.Request, res: express.Response) => {
     const username: string = req.params.username;
     if (!req.body.user.is_admin) {
-      if (req.body.user.username !== username) return res.sendStatus(403);
+      if (req.body.user.username !== username)
+        return res.status(403).send("You are not allowed to change this user");
     }
 
     sql.beginTransaction((transactionErr: mysql.MysqlError) => {
@@ -81,9 +92,12 @@ router.post(
         (findUserError: mysql.MysqlError, results: any) => {
           if (findUserError) {
             sql.rollback();
-            return res.sendStatus(500);
+            return res
+              .status(500)
+              .send("Something went wrong while searching for your user");
           }
-          if (results.length === 0) return res.sendStatus(404);
+          if (results.length === 0)
+            return res.status(404).send("User not found");
 
           const userToUpdate: UserType = req.body.updateData;
 
@@ -106,7 +120,9 @@ router.post(
             (updateAddressError: mysql.MysqlError) => {
               if (updateAddressError) {
                 sql.rollback();
-                return res.sendStatus(500);
+                return res
+                  .status(500)
+                  .send("Something went wrong while processing your Data");
               }
               const updateNameSQL: string =
                 "UPDATE name SET firstName = ?, lastName = ? WHERE id_name = ?";
@@ -121,7 +137,9 @@ router.post(
                 (updateNameError: mysql.MysqlError) => {
                   if (updateNameError) {
                     sql.rollback();
-                    return res.sendStatus(500);
+                    return res
+                      .status(500)
+                      .send("Something went wrong while processing your Data");
                   }
                   sql.commit();
                   res.sendStatus(200);

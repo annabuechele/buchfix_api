@@ -1,5 +1,3 @@
-import { StringMappingType } from "typescript";
-
 type BookType = {
   isbn: string;
   title: string;

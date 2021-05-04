@@ -11,6 +11,9 @@ import sql from "../../helpers/sql_db";
 //middlewares
 import validateUser from "../../helpers/validateUser";
 
+//helpers
+import mailSender from "../../helpers/mailSender";
+
 //post new user with recaptcha validation
 router.post("/new", async (req: express.Request, res: express.Response) => {
   const reCaptchaToken = req.body.reCaptchaToken;
@@ -24,7 +27,8 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
   const googleRes = await axios.post(
     `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${reCaptchaToken}`
   );
-  if (!googleRes.data.success) return res.sendStatus(401);
+  if (!googleRes.data.success)
+    return res.status(401).send("ReCaptcha validation failed");
 
   sql.beginTransaction((err: mysql.MysqlError) => {
     //insert adress
@@ -47,7 +51,9 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
       ) => {
         if (locationErr) {
           sql.rollback();
-          return res.sendStatus(500);
+          return res
+            .status(500)
+            .send("Something went wrong while processing your Data");
         }
 
         fk_address = locationResults.insertId;
@@ -64,7 +70,9 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
           ) => {
             if (nameErr) {
               sql.rollback();
-              return res.sendStatus(500);
+              return res
+                .status(500)
+                .send("Something went wrong while processing your Data");
             }
 
             fk_name = nameResults.insertId;
@@ -93,10 +101,15 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
               ) => {
                 if (userErr) {
                   sql.rollback();
-                  return res.sendStatus(500);
+                  return res
+                    .status(500)
+                    .send("Something went wrong while processing your Data");
                 }
                 sql.commit((commitError: mysql.MysqlError) => {
-                  if (commitError) return res.sendStatus(500);
+                  if (commitError)
+                    return res
+                      .status(500)
+                      .send("Something went wrong while processing your Data");
                   res.sendStatus(200);
                 });
               }
@@ -113,6 +126,16 @@ router.post(
   validateUser,
   (req: express.Request, res: express.Response) => {
     res.send(req.body.user);
+  }
+);
+
+router.post(
+  "/sendmail",
+  validateUser,
+  async (req: express.Request, res: express.Response) => {
+    await mailSender(req.body.user.email, "Verifikation", req.body.user);
+
+    res.sendStatus(200);
   }
 );
 
