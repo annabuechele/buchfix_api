@@ -10,12 +10,19 @@ import sql from "../../helpers/sql_db";
 import { EROFS } from "node:constants";
 
 router.post("/new", async (req: express.Request, res: express.Response) => {
-  let isbn: string;
-  let base64IMGFull: string;
-  let type: string;
-  let base64Short: string;
-  let randomstring: string;
-  let filename: string;
+  const isbn: string = req.body.book.isbn;
+  const base64IMGFull: string = req.body.base64;
+
+  const type: string = "." + base64IMGFull.substr(11, 3);
+  const base64Short: string = base64IMGFull.substr(22);
+
+  const randomstring: string = await require("crypto")
+    .randomBytes(16)
+    .toString("hex");
+
+  const filename: string = isbn + "_" + randomstring + type;
+
+  const buff = Buffer.from(base64Short, "base64");
 
   const insertBook: BookType = {
     format: req.body.book.format,
@@ -26,7 +33,6 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
     sites: req.body.book.sites,
     title: req.body.book.title,
   };
-  console.log(insertBook);
   sql.beginTransaction((transactionErr: mysql.MysqlError) => {
     if (transactionErr) return res.sendStatus(500);
 
@@ -41,36 +47,33 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
       (getGenreError: mysql.MysqlError, genreResults: Array<any>) => {
         if (getGenreError) return res.sendStatus(500);
         if (genreResults.length === 0) return res.sendStatus(404);
+
         fk_genre = genreResults[0].id_genre;
 
         const getFormatSQL: string =
-          "SELECT id_format FROM format WHERE name = ?";
+          "SELECT id_genre FROM format WHERE name = ?";
         sql.query(
           getFormatSQL,
           [insertBook.format],
           (getFromatError: mysql.MysqlError, formatResults: Array<any>) => {
-            console.log(getFromatError);
             if (getFromatError) return res.sendStatus(500);
 
             if (genreResults.length === 0) return res.sendStatus(404);
 
-            fk_format = formatResults[0].id_format;
+            fk_format = formatResults[0].id_genre;
 
             const insertFileSQL: string =
               "INSERT INTO file (name, path) VALUES (?, ?)";
             sql.query(
               insertFileSQL,
-              [],
-              (
-                insertFileError: mysql.MysqlError,
-                insertFileResults: Array<any>
-              ) => {
-                console.log("insert book");
+              [insertBook.file_name, insertBook.path],
+              (insertFileError: mysql.MysqlError, insertFileResults: any) => {
                 if (insertFileError) {
                   sql.rollback();
                   return res.sendStatus(500);
                 }
-                fk_file = insertFileResults[0].insertId;
+
+                fk_file = insertFileResults.insertId;
 
                 const insertBookSQL: string =
                   "INSERT INTO book (isbn, title, sites, fk_format, fk_genre, fk_file) VALUES (?, ?, ?, ?, ?, ?)";
@@ -92,21 +95,8 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                       sql.rollback();
                       return res.sendStatus(500);
                     }
+
                     try {
-                      isbn = req.body.book.isbn;
-                      base64IMGFull = req.body.base64;
-
-                      type = "." + base64IMGFull.substr(11, 3);
-
-                      base64Short = base64IMGFull.substr(22);
-
-                      const buff = Buffer.from(base64Short, "base64");
-
-                      randomstring = await require("crypto")
-                        .randomBytes(16)
-                        .toString("hex");
-
-                      filename = isbn + randomstring + type;
                       fs.writeFileSync(
                         "../public_html/static/media/" + filename,
                         buff

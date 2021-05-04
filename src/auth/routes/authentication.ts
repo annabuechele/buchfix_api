@@ -9,9 +9,6 @@ import UserLoginType from "../../types/userLoginType";
 //mongo models
 import tokenSchema from "../../helpers/mongo_schemas/mongoToken";
 
-//DB connection object
-import sql from "../../helpers/sql_db";
-
 const genAccessToken: (user: UserLoginType) => string = (user) => {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "10m",
