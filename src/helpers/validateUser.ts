@@ -38,7 +38,7 @@ const validateUser = (
           if (saltResults.length === 0) return res.sendStatus(403);
 
           const salt: string = saltResults[0].salt;
-
+          console.log("found salt", salt);
           const userSQL: string =
             "SELECT username, email, is_admin, street, number, zip, city, state, country, firstName, lastName from buchfix_db.user INNER JOIN address ON user.fk_address=address.id_address INNER JOIN name ON user.fk_name=name.id_name WHERE username = ? AND password = SHA1(?) ";
 
@@ -67,7 +67,7 @@ const validateUser = (
                   zipCode: userResults[0].zip,
                 },
               };
-
+              console.log("found user", user);
               req.body.user = user;
               next();
             }
