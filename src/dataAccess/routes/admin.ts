@@ -20,6 +20,7 @@ router.post(
     const username: string = req.params.username;
 
     const userSQL: string = "SELECT * FROM user WHERE username = ?";
+
     sql.query(
       userSQL,
       [username],
@@ -68,7 +69,8 @@ router.post(
   validateUser,
   (req: express.Request, res: express.Response) => {
     const username: string = req.params.username;
-
+    console.log(req.body.user.is_admin);
+    console.log(req.body.user.username);
     if (!req.body.user.is_admin) {
       if (req.body.user.username !== username) return res.sendStatus(403);
     }
