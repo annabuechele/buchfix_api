@@ -32,6 +32,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
     sites: req.body.book.sites,
     title: req.body.book.title,
   };
+  console.log(insertBook);
   sql.beginTransaction((transactionErr: mysql.MysqlError) => {
     console.log(transactionErr);
     if (transactionErr) return res.status(500).send("Something went wrong");
@@ -45,6 +46,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
       getGenreSQL,
       [insertBook.genre],
       (getGenreError: mysql.MysqlError, genreResults: any) => {
+        console.log(getGenreError);
         if (getGenreError)
           return res
             .status(500)
@@ -59,6 +61,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
           getFormatSQL,
           [insertBook.format],
           (getFromatError: mysql.MysqlError, formatResults: Array<any>) => {
+            console.log(getFromatError);
             if (getFromatError)
               return res
                 .status(500)
@@ -75,6 +78,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
               insertFileSQL,
               [insertBook.file_name, insertBook.path],
               (insertFileError: mysql.MysqlError, insertFileResults: any) => {
+                console.log(insertFileError);
                 if (insertFileError) {
                   sql.rollback();
                   return res
@@ -100,6 +104,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                     insertBookError: mysql.MysqlError,
                     insertBookResults: Array<any>
                   ) => {
+                    console.log(insertBookError);
                     if (insertBookError) {
                       sql.rollback();
                       return res
