@@ -33,6 +33,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
     title: req.body.book.title,
   };
   sql.beginTransaction((transactionErr: mysql.MysqlError) => {
+    console.log(transactionErr);
     if (transactionErr) return res.status(500).send("Something went wrong");
 
     let fk_genre: number;
