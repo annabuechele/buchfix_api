@@ -129,7 +129,13 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
                     }
 
                     sql.commit();
-                    res.sendStatus(200);
+                    res
+                      .status(200)
+                      .send(
+                        "https://buchfix.at" +
+                          insertBook.path +
+                          insertBook.file_name
+                      );
                   }
                 );
               }
