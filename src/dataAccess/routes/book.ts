@@ -12,7 +12,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
   const isbn: string = req.body.book.isbn;
   const base64IMGFull: string = req.body.base64;
 
-  const type: string = "." + base64IMGFull.trim().substr(12, 3);
+  const type: string = "." + base64IMGFull.trim().substr(11, 3);
   const base64Short: string = base64IMGFull.substr(22);
 
   const randomstring: string = await require("crypto")
