@@ -79,6 +79,7 @@ const validateUser = (
               };
 
               req.body.user = user;
+
               next();
             }
           );

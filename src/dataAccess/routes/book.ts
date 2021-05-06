@@ -13,6 +13,13 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
   const base64IMGFull: string = req.body.base64;
 
   const type: string = "." + base64IMGFull.trim().substr(11, 3);
+  console.log(type);
+
+  if (type !== ".png")
+    if (type !== ".jpg")
+      if (type !== ".gif")
+        return res.status(500).send("Error with your File/Filename");
+
   const base64Short: string = base64IMGFull.substr(22);
 
   const randomstring: string = await require("crypto")
@@ -22,7 +29,7 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
   const filename: string = isbn + "_" + randomstring + type;
 
   const buff = Buffer.from(base64Short, "base64");
-
+  console.log(filename);
   const insertBook: BookType = {
     format: req.body.book.format,
     genre: req.body.book.genre,
@@ -146,5 +153,44 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
     );
   });
 });
+
+router.post(
+  "/findbyisbn/:isbn",
+  validateUser,
+  (req: express.Request, res: express.Response) => {}
+);
+
+router.post(
+  "/getsearchresult",
+  validateUser,
+  (req: express.Request, res: express.Response) => {
+    let queryItems: any = Number(req.query.queryItems);
+    const queryString = req.query.queryString;
+
+    if (typeof queryItems === "string" || !queryItems) queryItems = 5;
+
+    if (!queryString) return res.sendStatus(400);
+
+    if (queryString.length < 3) return res.sendStatus(400);
+
+    const findBooksSQL: string =
+      "SELECT isbn, title from book WHERE title LIKE " +
+      sql.escape("%" + queryString + "%") +
+      " ORDER BY title ASC LIMIT ?";
+    //escaping mysql package bugs be like
+    sql.query(
+      findBooksSQL,
+      [queryItems],
+      (findBookError: mysql.MysqlError, findBookResults: any, fields) => {
+        console.log(findBookResults);
+        if (findBookError)
+          res.status(500).send("There was an error while processing your Data");
+        if (findBookResults.length === 0)
+          return res.status(400).send("No books found with these parameters!");
+        res.send(findBookResults);
+      }
+    );
+  }
+);
 
 export default router;
