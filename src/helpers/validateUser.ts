@@ -47,7 +47,7 @@ const validateUser = (
 
           const salt: string = saltResults[0].salt;
           const userSQL: string =
-            "SELECT username, email, is_admin, street, number, zip, city, state, country, firstName, lastName from buchfix_db.user INNER JOIN address ON user.fk_address=address.id_address INNER JOIN name ON user.fk_name=name.id_name WHERE username = ? AND password = SHA1(?) ";
+            "SELECT id_user, username, email, is_admin, street, number, zip, city, state, country, firstName, lastName from buchfix_db.user INNER JOIN address ON user.fk_address=address.id_address INNER JOIN name ON user.fk_name=name.id_name WHERE username = ? AND password = SHA1(?) ";
 
           sql.query(
             userSQL,
@@ -61,6 +61,7 @@ const validateUser = (
               if (userResults.length === 0) return res.send(403);
 
               const user: UserType = {
+                id: userResults[0].id_user,
                 username: userResults[0].username,
                 email: userResults[0].email,
                 is_admin: userResults[0].is_admin,
