@@ -11,11 +11,12 @@ import tokenSchema from "../../helpers/mongo_schemas/mongoToken";
 
 const genAccessToken: (user: UserLoginType) => string = (user) => {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "10m",
+    expiresIn: "5m",
   });
 };
 
 router.post("/token", async (req: express.Request, res: express.Response) => {
+  console.log("token req");
   const refreshToken = req.body.refreshToken;
 
   if (refreshToken == null) return res.status(401).send("No Token provided");

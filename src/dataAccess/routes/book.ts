@@ -192,7 +192,7 @@ router.post(
   }
 );
 //find book by isbn
-router.post(
+router.get(
   "/findbyisbn/:isbn",
   validateUser,
   (req: express.Request, res: express.Response) => {
@@ -229,7 +229,7 @@ router.post(
   }
 );
 //query results for searchbar
-router.post(
+router.get(
   "/getsearchresult",
   validateUser,
   (req: express.Request, res: express.Response) => {

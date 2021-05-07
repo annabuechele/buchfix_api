@@ -12,7 +12,8 @@ const validateUser = (
   res: express.Response,
   next: Function
 ) => {
-  const accessToken = req.body.accessToken;
+  const authHeader = req.headers["authorization"];
+  const accessToken = authHeader && authHeader.split(" ")[1];
 
   if (accessToken == null)
     return res.status(401).send("Accesstoken not provided");
