@@ -8,7 +8,7 @@ import * as mysql from "mysql";
 //DB connection object
 import sql from "../../helpers/sql_db";
 import UserType from "../../types/userType";
-
+//donate / insert book (depends if user is admin or not)
 router.post(
   "/new",
   validateUser,
@@ -54,7 +54,8 @@ router.post(
       let fk_file: number;
       const accepted: "a" | "w" | "d" = req.body.user.is_admin ? "a" : "w";
 
-      const getGenreSQL: string = "SELECT id_genre FROM genre WHERE name = ?";
+      const getGenreSQL: string =
+        "SELECT id_genre FROM genre WHERE genre_name = ?";
       sql.query(
         getGenreSQL,
         [insertBook.genre],
@@ -69,7 +70,7 @@ router.post(
 
           fk_genre = genreResults[0].id_genre;
           const getFormatSQL: string =
-            "SELECT id_format FROM format WHERE name = ?";
+            "SELECT id_format FROM format WHERE format_name = ?";
           sql.query(
             getFormatSQL,
             [insertBook.format],
@@ -86,7 +87,7 @@ router.post(
               fk_format = formatResults[0].id_format;
 
               const insertFileSQL: string =
-                "INSERT INTO file (name, path) VALUES (?, ?)";
+                "INSERT INTO file (file_name, path) VALUES (?, ?)";
               sql.query(
                 insertFileSQL,
                 [insertBook.file_name, insertBook.path],
@@ -190,17 +191,44 @@ router.post(
     });
   }
 );
-
+//find book by isbn
 router.post(
   "/findbyisbn/:isbn",
   validateUser,
   (req: express.Request, res: express.Response) => {
     const isbn = req.params.isbn;
 
-    const findBookSQL = "SELECT * from";
+    const findBookSQL =
+      "SELECT isbn, title, sites, format_name, genre_name, file_name, path from book INNER JOIN format ON book.fk_format=format.id_format INNER JOIN genre ON book.fk_genre=genre.id_genre INNER JOIN file ON book.fk_file=file.id_file WHERE isbn=?";
+
+    sql.query(
+      findBookSQL,
+      [isbn],
+      (findBookError: mysql.MysqlError, findBookResults: any) => {
+        console.log(findBookError);
+        if (findBookError)
+          res.status(500).send("There was an error while processing your Data");
+
+        if (findBookResults.length == 0)
+          return res.status(404).send("No books found with this ISBN");
+
+        const resultBook: BookType = {
+          format: findBookResults[0].format_name,
+          genre: findBookResults[0].genre_name,
+          isbn: findBookResults[0].isbn,
+          path:
+            process.env.PAGE_URL +
+            findBookResults[0].path +
+            findBookResults[0].file_name,
+          sites: findBookResults[0].sites,
+          title: findBookResults[0].title,
+        };
+        res.send(resultBook);
+      }
+    );
   }
 );
-
+//query results for searchbar
 router.post(
   "/getsearchresult",
   validateUser,
@@ -222,7 +250,7 @@ router.post(
     sql.query(
       findBooksSQL,
       [queryItems],
-      (findBookError: mysql.MysqlError, findBookResults: any, fields) => {
+      (findBookError: mysql.MysqlError, findBookResults: any) => {
         console.log(findBookResults);
         if (findBookError)
           res.status(500).send("There was an error while processing your Data");
@@ -231,6 +259,18 @@ router.post(
         res.send(findBookResults);
       }
     );
+  }
+);
+
+//delete book by
+router.delete(
+  "/deletebook/:isbn",
+  validateUser,
+  (req: express.Request, res: express.Response) => {
+    console.log(req.body.user);
+    if (req.body.user.id_admin === 0)
+      return res.status(403).send("You are not allowed to delete books");
+    res.sendStatus(200);
   }
 );
 

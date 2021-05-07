@@ -8,7 +8,7 @@ type BookType = {
   genre: string;
   format: string;
   path: string;
-  file_name: string;
+  file_name?: string;
 };
 
 export default BookType;
