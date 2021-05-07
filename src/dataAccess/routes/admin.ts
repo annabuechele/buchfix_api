@@ -34,7 +34,7 @@ router.post(
           return res.status(404).send("User not found");
 
         const findUserSQL: string =
-          "SELECT username, email, is_admin, street, number, zip, city, state, country, firstName, lastName from buchfix_db.user INNER JOIN address ON user.fk_address=address.id_address INNER JOIN name ON user.fk_name=name.id_name WHERE username = ?";
+          "SELECT username, email, is_admin, street, number, zip, city, state, country, firstName, lastName from user INNER JOIN address ON user.fk_address=address.id_address INNER JOIN name ON user.fk_name=name.id_name WHERE username = ?";
 
         sql.query(
           findUserSQL,
