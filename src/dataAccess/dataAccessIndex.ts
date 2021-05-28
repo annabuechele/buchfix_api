@@ -20,7 +20,7 @@ const PORT = process.env.DA_PORT || 4000;
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-app.use(rateLimiting({ windowMs: 1000, max: 50 })); //50 Requests/min
+app.use(rateLimiting({ windowMs: 1000, max: 10 })); //10 Requests/s
 
 //routes
 app.use("/user", userRoute);

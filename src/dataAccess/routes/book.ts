@@ -8,6 +8,7 @@ import * as mysql from "mysql";
 //DB connection object
 import sql from "../../helpers/sql_db";
 import UserType from "../../types/userType";
+
 //donate / insert book (depends if user is admin or not)
 router.post(
   "/new",
@@ -34,7 +35,6 @@ router.post(
     const filename: string = isbn + "_" + randomstring + type;
 
     const buff = Buffer.from(base64Short, "base64");
-    console.log(filename);
     const insertBook: BookType = {
       format: req.body.book.format,
       genre: req.body.book.genre,
@@ -44,9 +44,7 @@ router.post(
       sites: req.body.book.sites,
       title: req.body.book.title,
     };
-    console.log(insertBook);
     sql.beginTransaction((transactionErr: mysql.MysqlError) => {
-      console.log(transactionErr);
       if (transactionErr) return res.status(500).send("Something went wrong");
 
       let fk_genre: number;
@@ -169,7 +167,6 @@ router.post(
                                 "Something went wrong while processing your Data"
                               );
                           }
-
                           sql.commit();
                           res
                             .status(200)
@@ -223,7 +220,25 @@ router.get(
           sites: findBookResults[0].sites,
           title: findBookResults[0].title,
         };
-        res.send(resultBook);
+
+        const bookAvaibableSQL =
+          "SELECT * from user_donates_book WHERE fk_book=? AND accepted='a'";
+
+        sql.query(
+          bookAvaibableSQL,
+          [resultBook.isbn],
+          (bookAvaibableError: mysql.MysqlError, bookAvaibableResults: any) => {
+            if (bookAvaibableError)
+              res
+                .status(500)
+                .send("There was an error while processing your Data");
+            if (bookAvaibableResults.length == 0)
+              return res
+                .status(404)
+                .send("No book is currently not avaivable!");
+            res.send(resultBook);
+          }
+        );
       }
     );
   }
@@ -243,20 +258,86 @@ router.get(
     if (queryString.length < 3) return res.sendStatus(400);
 
     const findBooksSQL: string =
-      "SELECT isbn, title from book WHERE title LIKE " +
+      "SELECT isbn, title from book INNER JOIN user_donates_book ON user_donates_book.fk_book=book.isbn  WHERE title LIKE " +
       sql.escape("%" + queryString + "%") +
-      " ORDER BY title ASC LIMIT ?";
+      "AND accepted='a' ORDER BY title ASC LIMIT ?";
     //escaping mysql package bugs be like
     sql.query(
       findBooksSQL,
       [queryItems],
       (findBookError: mysql.MysqlError, findBookResults: any) => {
-        console.log(findBookResults);
         if (findBookError)
           res.status(500).send("There was an error while processing your Data");
         if (findBookResults.length === 0)
           return res.status(400).send("No books found with these parameters!");
         res.send(findBookResults);
+      }
+    );
+  }
+);
+
+//get newest book inserted
+router.get(
+  "/newest",
+  validateUser,
+  (req: express.Request, res: express.Response) => {
+    let resultsQuery: any = Number(req.query.results);
+    if (!resultsQuery) resultsQuery = 5;
+
+    const findBooksSQL: string =
+      "SELECT isbn, title, file_name from book INNER JOIN user_donates_book ON user_donates_book.fk_book=book.isbn INNER JOIN file ON book.fk_file=id_file WHERE accepted='a' ORDER BY donated_at ASC LIMIT ?";
+
+    sql.query(
+      findBooksSQL,
+      [resultsQuery],
+      (findBookError: mysql.MysqlError, findBookResults: any) => {
+        console.log(findBookError);
+        if (findBookError)
+          res
+            .status(500)
+            .send("Something went wrong while processing your data!");
+
+        res.status(200).send(findBookResults);
+      }
+    );
+  }
+);
+
+//get all genres
+router.get(
+  "/genres",
+  validateUser,
+  (req: express.Request, res: express.Response) => {
+    const getGenresSQL = "SELECT genre_name from genre";
+
+    sql.query(
+      getGenresSQL,
+      (getGenreError: mysql.MysqlError, getGenreResults: any) => {
+        if (getGenreError)
+          res
+            .status(500)
+            .send("Something went wrong while processing your data!");
+        res.status(200).send(getGenreResults);
+      }
+    );
+  }
+);
+
+//get all genres
+router.get(
+  "/formats",
+  validateUser,
+  (req: express.Request, res: express.Response) => {
+    const getGenresSQL = "SELECT format_name from format";
+
+    sql.query(
+      getGenresSQL,
+      (getFormatError: mysql.MysqlError, getFormatResults: any) => {
+        if (getFormatError)
+          res
+            .status(500)
+            .send("Something went wrong while processing your data!");
+        res.status(200).send(getFormatResults);
       }
     );
   }

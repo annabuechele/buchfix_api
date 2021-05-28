@@ -11,7 +11,7 @@ import tokenSchema from "../../helpers/mongo_schemas/mongoToken";
 
 const genAccessToken: (user: UserLoginType) => string = (user) => {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "5m",
+    expiresIn: "1h",
   });
 };
 
