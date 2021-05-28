@@ -21,6 +21,7 @@ router.post(
     const type: string = "." + base64IMGFull.trim().substr(11, 3);
     console.log(type);
 
+    console.log(type)
     if (type !== ".png")
       if (type !== ".jpg")
         if (type !== ".gif")
@@ -313,6 +314,7 @@ router.get(
     sql.query(
       getGenresSQL,
       (getGenreError: mysql.MysqlError, getGenreResults: any) => {
+        console.log(getGenreError)
         if (getGenreError)
           res
             .status(500)
