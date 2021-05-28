@@ -21,7 +21,7 @@ router.post(
     const type: string = "." + base64IMGFull.trim().substr(11, 3);
     console.log(type);
 
-    console.log(type)
+    console.log(type);
     if (type !== ".png")
       if (type !== ".jpg")
         if (type !== ".gif")
@@ -277,6 +277,24 @@ router.get(
   }
 );
 
+router.get(
+  "/all",
+  validateUser,
+  (req: express.Request, res: express.Response) => {
+    const findBooksSQL: string =
+      "SELECT isbn, title, file_name from book INNER JOIN user_donates_book ON user_donates_book.fk_book=book.isbn INNER JOIN file ON book.fk_file=id_file WHERE accepted='a' ORDER BY title ASC ";
+
+    sql.query(
+      findBooksSQL,
+      (findBookError: mysql.MysqlError, findBookResults: any) => {
+        console.log(findBookResults);
+        if (findBookError)
+          return res.status(500).send("Error while processing your data");
+        res.status(200).send(findBookResults);
+      }
+    );
+  }
+);
 //get newest book inserted
 router.get(
   "/newest",
@@ -314,7 +332,7 @@ router.get(
     sql.query(
       getGenresSQL,
       (getGenreError: mysql.MysqlError, getGenreResults: any) => {
-        console.log(getGenreError)
+        console.log(getGenreError);
         if (getGenreError)
           res
             .status(500)
