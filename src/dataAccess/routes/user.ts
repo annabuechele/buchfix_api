@@ -125,6 +125,7 @@ router.post(
   "/getfulldata",
   validateUser,
   (req: express.Request, res: express.Response) => {
+    
     res.send(req.body.user);
   }
 );
