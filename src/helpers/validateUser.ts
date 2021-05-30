@@ -37,6 +37,7 @@ const validateUser = (
         findSaltSQL,
         [loginUser.username],
         async (saltError: mysql.MysqlError, saltResults: Array<any>) => {
+          console.log("salterror:", saltError);
           if (saltError)
             return res
               .status(500)
@@ -53,6 +54,7 @@ const validateUser = (
             userSQL,
             [loginUser.username, loginUser.password + salt],
             (userError: mysql.MysqlError, userResults: Array<any>) => {
+              console.log("userError:", userError);
               if (userError)
                 return res
                   .status(500)
