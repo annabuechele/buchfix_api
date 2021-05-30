@@ -30,7 +30,7 @@ const validateUser = (
         username: jwtUser.username,
         password: jwtUser.password,
       };
-      console.log(loginUser)
+      console.log(loginUser);
       //find user in DB
       const findSaltSQL: string = "SELECT salt from user WHERE username = ?";
       sql.query(

@@ -23,12 +23,13 @@ router.post("/new", async (req: express.Request, res: express.Response) => {
   let fk_address: number;
   let fk_name: number;
 
+  //why not work
   //google recaptcha
-  const googleRes = await axios.post(
-    `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${reCaptchaToken}`
-  );
-  if (!googleRes.data.success)
-    return res.status(401).send("ReCaptcha validation failed");
+  // const googleRes = await axios.post(
+  //   `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${reCaptchaToken}`
+  // );
+  // if (!googleRes.data.success)
+  //   return res.status(401).send("ReCaptcha validation failed");
 
   sql.beginTransaction((err: mysql.MysqlError) => {
     //insert adress
@@ -125,7 +126,6 @@ router.post(
   "/getfulldata",
   validateUser,
   (req: express.Request, res: express.Response) => {
-    
     res.send(req.body.user);
   }
 );
