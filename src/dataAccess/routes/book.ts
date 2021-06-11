@@ -244,6 +244,63 @@ router.get(
     );
   }
 );
+
+//find book by isbn
+router.get(
+  "/findbytitle/:title",
+  validateUser,
+  (req: express.Request, res: express.Response) => {
+    const title = req.params.title;
+
+    const findBookSQL =
+      "SELECT isbn, title, sites, format_name, genre_name, file_name, path from book INNER JOIN format ON book.fk_format=format.id_format INNER JOIN genre ON book.fk_genre=genre.id_genre INNER JOIN file ON book.fk_file=file.id_file WHERE title=?";
+
+    sql.query(
+      findBookSQL,
+      [title],
+      (findBookError: mysql.MysqlError, findBookResults: any) => {
+        console.log(findBookError);
+        if (findBookError)
+          res.status(500).send("There was an error while processing your Data");
+
+        if (findBookResults.length == 0)
+          return res.status(404).send("No books found with this ISBN");
+
+        const resultBook: BookType = {
+          format: findBookResults[0].format_name,
+          genre: findBookResults[0].genre_name,
+          isbn: findBookResults[0].isbn,
+          path:
+            process.env.PAGE_URL +
+            findBookResults[0].path +
+            findBookResults[0].file_name,
+          sites: findBookResults[0].sites,
+          title: findBookResults[0].title,
+        };
+
+        const bookAvaibableSQL =
+          "SELECT * from user_donates_book WHERE fk_book=? AND accepted='a'";
+
+        sql.query(
+          bookAvaibableSQL,
+          [resultBook.isbn],
+          (bookAvaibableError: mysql.MysqlError, bookAvaibableResults: any) => {
+            if (bookAvaibableError)
+              res
+                .status(500)
+                .send("There was an error while processing your Data");
+            if (bookAvaibableResults.length == 0)
+              return res
+                .status(404)
+                .send("No book is currently not avaivable!");
+            res.send(resultBook);
+          }
+        );
+      }
+    );
+  }
+);
+
 //query results for searchbar
 router.get(
   "/getsearchresult",
